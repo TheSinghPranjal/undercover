@@ -43,9 +43,13 @@ void main() {
     // Configure: medium, hints on.
     await tester.tap(find.bySemanticsLabel('Medium difficulty'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Show hint to imposter'));
+    await tester.scrollUntilVisible(
+      find.text('Give a hint'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Show hint to imposter'));
+    await tester.tap(find.text('Give a hint'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('PASS THE PHONE'));
     // The pass-phone screen has a looping bounce, so pump instead of settle.
