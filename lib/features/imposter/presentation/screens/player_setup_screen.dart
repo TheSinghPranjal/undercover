@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_tokens.dart';
-import '../../../../core/widgets/game_background.dart';
 import '../../../../core/widgets/player_avatar.dart';
 import '../../domain/entities/player.dart';
 import '../../domain/services/game_rules.dart';
 import '../../domain/services/player_validator.dart';
 import '../providers/providers.dart';
-import '../widgets/game_button.dart';
 import '../widgets/labels.dart';
+import '../widgets/playful_ui.dart';
 import 'game_config_screen.dart';
 
 class PlayerSetupScreen extends ConsumerStatefulWidget {
@@ -135,148 +135,307 @@ class _PlayerSetupScreenState extends ConsumerState<PlayerSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final players = ref.watch(playersProvider);
-    final text = Theme.of(context).textTheme;
-    final scheme = Theme.of(context).colorScheme;
-    final muted = scheme.onSurface.withValues(alpha: 0.7);
     final canContinue = players.length >= GameRules.minPlayers;
     final full = players.length >= GameRules.maxPlayers;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("WHO'S PLAYING?"),
-        actions: [
-          if (players.isNotEmpty)
-            IconButton(
-              tooltip: 'Clear all players',
-              icon: const Icon(Icons.delete_sweep_rounded),
-              onPressed: _clearAll,
-            ),
-        ],
-      ),
-      extendBodyBehindAppBar: true,
-      body: GameBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.gutter),
-            child: Column(
-              children: [
-                const SizedBox(height: kToolbarHeight),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _textController,
-                        focusNode: _focusNode,
-                        enabled: !full,
-                        maxLength: GameRules.maxNameLength,
-                        textCapitalization: TextCapitalization.words,
-                        textInputAction: TextInputAction.done,
-                        onChanged: _onChanged,
-                        onSubmitted: (_) => _add(),
-                        decoration: InputDecoration(
-                          hintText: full ? 'Full house!' : 'Player name',
-                          prefixIcon: const Icon(Icons.person_rounded),
-                          errorText: _error,
-                          counterText: '',
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: PlayfulColors.page,
+        body: PlayfulBackground(
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 22),
+              child: Column(
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
+                  Stack(
+                    children: [
+                      Align(
+                        alignment: Alignment.topLeft,
+                        child: RoundIconButton(
+                          icon: Icons.chevron_left_rounded,
+                          tooltip: 'Back',
+                          onPressed: () => Navigator.of(context).maybePop(),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    SizedBox(
-                      height: 56,
-                      child: FilledButton.icon(
-                        onPressed: full ? null : _add,
-                        icon: const Icon(Icons.add_rounded),
-                        label: const Text('ADD'),
-                        style: FilledButton.styleFrom(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: AppRadius.button,
+                      if (players.isNotEmpty)
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: RoundIconButton(
+                            icon: Icons.delete_sweep_rounded,
+                            tooltip: 'Clear all players',
+                            onPressed: _clearAll,
+                          ),
+                        ),
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(40, 22, 40, 0),
+                        child: Center(
+                          child: BubbleTitle(
+                            top: "WHO'S",
+                            bottom: 'PLAYING?',
+                            semanticsLabel: "Who's playing?",
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SizedBox(
-                  width: double.infinity,
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    spacing: AppSpacing.md,
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _textController,
+                          focusNode: _focusNode,
+                          enabled: !full,
+                          maxLength: GameRules.maxNameLength,
+                          textCapitalization: TextCapitalization.words,
+                          textInputAction: TextInputAction.done,
+                          onChanged: _onChanged,
+                          onSubmitted: (_) => _add(),
+                          cursorColor: PlayfulColors.accent,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: PlayfulColors.ink,
+                          ),
+                          decoration: InputDecoration(
+                            hintText: full ? 'Full house!' : 'Player name',
+                            hintStyle: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
+                              color: PlayfulColors.soft,
+                            ),
+                            prefixIcon: const Padding(
+                              padding: EdgeInsets.only(left: 18, right: 10),
+                              child: Icon(
+                                Icons.person_rounded,
+                                color: Color(0xFF4A3F86),
+                                size: 26,
+                              ),
+                            ),
+                            prefixIconConstraints: const BoxConstraints(),
+                            errorText: _error,
+                            counterText: '',
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
+                            border: _fieldBorder(PlayfulColors.field),
+                            enabledBorder: _fieldBorder(PlayfulColors.field),
+                            disabledBorder: _fieldBorder(PlayfulColors.field),
+                            focusedBorder: _fieldBorder(
+                              PlayfulColors.accent,
+                              width: 2,
+                            ),
+                            errorBorder: _fieldBorder(const Color(0xFFE0304F)),
+                            focusedErrorBorder: _fieldBorder(
+                              const Color(0xFFE0304F),
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      _AddButton(onPressed: full ? null : _add),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
                     children: [
                       Text(
                         '${players.length} / ${GameRules.maxPlayers} players',
-                        style: text.titleSmall,
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          color: PlayfulColors.ink,
+                        ),
                       ),
-                      Text(
-                        'Best with ${GameRules.recommendedMinPlayers}–${GameRules.recommendedMaxPlayers} players',
-                        style: text.bodySmall?.copyWith(color: muted),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Expanded(
-                  child: Stack(
-                    children: [
-                      if (players.isEmpty)
-                        Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text('👥', style: TextStyle(fontSize: 56)),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                'Add at least ${GameRules.minPlayers} players to start.',
-                                textAlign: TextAlign.center,
-                                style: text.titleMedium?.copyWith(color: muted),
-                              ),
-                            ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Best with ${GameRules.recommendedMinPlayers}–${GameRules.recommendedMaxPlayers} players',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: PlayfulColors.muted,
                           ),
                         ),
-                      AnimatedList(
-                        key: _listKey,
-                        controller: _scrollController,
-                        initialItemCount: players.length,
-                        padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        itemBuilder: (context, index, animation) {
-                          final list = ref.read(playersProvider);
-                          if (index >= list.length) {
-                            return const SizedBox.shrink();
-                          }
-                          final p = list[index];
-                          return _PlayerTile(
-                            key: ValueKey(p.id),
-                            player: p,
-                            animation: animation,
-                            onTap: () => _rename(p),
-                            onRemove: () => _remove(p, index),
-                          );
-                        },
                       ),
                     ],
                   ),
-                ),
-                if (!canContinue && players.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: Text(
-                      'Add ${GameRules.minPlayers - players.length} more to start.',
-                      style: text.bodyMedium?.copyWith(color: muted),
+                  const SizedBox(height: AppSpacing.md),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        if (players.isEmpty) const Center(child: _EmptyState()),
+                        AnimatedList(
+                          key: _listKey,
+                          controller: _scrollController,
+                          initialItemCount: players.length,
+                          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                          itemBuilder: (context, index, animation) {
+                            final list = ref.read(playersProvider);
+                            if (index >= list.length) {
+                              return const SizedBox.shrink();
+                            }
+                            final p = list[index];
+                            return _PlayerTile(
+                              key: ValueKey(p.id),
+                              player: p,
+                              animation: animation,
+                              onTap: () => _rename(p),
+                              onRemove: () => _remove(p, index),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ),
-                GameButton(
-                  label: 'CONTINUE',
-                  icon: Icons.arrow_forward_rounded,
-                  onPressed: canContinue ? _continue : null,
-                ),
-                const SizedBox(height: AppSpacing.md),
-              ],
+                  if (!canContinue && players.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                        'Add ${GameRules.minPlayers - players.length} more to start.',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          color: PlayfulColors.accentDeep,
+                        ),
+                      ),
+                    ),
+                  PillButton(
+                    label: 'CONTINUE',
+                    icon: Icons.arrow_forward_rounded,
+                    primary: true,
+                    onPressed: canContinue ? _continue : null,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  static OutlineInputBorder _fieldBorder(Color color, {double width = 1.5}) =>
+      OutlineInputBorder(
+        borderRadius: BorderRadius.circular(18),
+        borderSide: BorderSide(color: color, width: width),
+      );
+}
+
+class _AddButton extends StatelessWidget {
+  const _AddButton({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final enabled = onPressed != null;
+    const radius = BorderRadius.all(Radius.circular(18));
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      child: Material(
+        type: MaterialType.transparency,
+        child: Ink(
+          height: 60,
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: enabled
+                  ? PlayfulColors.primaryGradient
+                  : const [Color(0xFFC9C0E3), Color(0xFFC9C0E3)],
+            ),
+            boxShadow: enabled
+                ? [
+                    BoxShadow(
+                      color: PlayfulColors.accent.withValues(alpha: 0.35),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
+          ),
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onPressed,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 22),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add_rounded, color: Colors.white, size: 28),
+                  SizedBox(width: 8),
+                  Text(
+                    'ADD',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    const burst = Color(0xFF7B55EE);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Sparks(color: burst, mirrored: true),
+            const SizedBox(width: 4),
+            ShaderMask(
+              blendMode: BlendMode.srcIn,
+              shaderCallback: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFC3B0F5), Color(0xFF9D82EC)],
+              ).createShader,
+              child: const Padding(
+                padding: EdgeInsets.only(top: 14),
+                child: Icon(Icons.groups_rounded, size: 96),
+              ),
+            ),
+            const SizedBox(width: 4),
+            const Sparks(color: burst),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Add at least ${GameRules.minPlayers} players to start.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: PlayfulColors.muted,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -297,12 +456,11 @@ class _PlayerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final curved = CurvedAnimation(
       parent: animation,
       curve: Curves.easeOutBack,
     );
+    const radius = BorderRadius.all(Radius.circular(18));
     return SizeTransition(
       sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
       child: FadeTransition(
@@ -313,42 +471,64 @@ class _PlayerTile extends StatelessWidget {
             end: Offset.zero,
           ).animate(curved),
           child: Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.only(bottom: 10),
             child: Material(
-              color: scheme.surface,
-              borderRadius: AppRadius.button,
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: onTap,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: Row(
-                    children: [
-                      Text(
-                        player.position.toString().padLeft(2, '0'),
-                        style: text.labelLarge?.copyWith(color: scheme.primary),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                      PlayerAvatar(name: player.name, seed: player.id),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Text(
-                          player.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: text.titleMedium,
+              type: MaterialType.transparency,
+              child: Ink(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: radius,
+                  border: Border.all(color: Colors.white),
+                  boxShadow: [
+                    BoxShadow(
+                      color: PlayfulColors.accent.withValues(alpha: 0.1),
+                      blurRadius: 14,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: InkWell(
+                  borderRadius: radius,
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 4, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          player.position.toString().padLeft(2, '0'),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                            color: PlayfulColors.accent,
+                          ),
                         ),
-                      ),
-                      if (onRemove != null)
-                        IconButton(
-                          tooltip: 'Remove ${player.name}',
-                          icon: const Icon(Icons.close_rounded),
-                          onPressed: onRemove,
+                        const SizedBox(width: 14),
+                        PlayerAvatar(name: player.name, seed: player.id),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            player.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                              color: PlayfulColors.ink,
+                            ),
+                          ),
                         ),
-                    ],
+                        if (onRemove != null)
+                          IconButton(
+                            tooltip: 'Remove ${player.name}',
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: PlayfulColors.soft,
+                            ),
+                            onPressed: onRemove,
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
