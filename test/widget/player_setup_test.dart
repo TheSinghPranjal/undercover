@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:undercover/features/imposter/presentation/providers/providers.dart';
 import 'package:undercover/features/imposter/presentation/screens/game_config_screen.dart';
 import 'package:undercover/features/imposter/presentation/screens/player_setup_screen.dart';
+import 'package:undercover/features/imposter/presentation/widgets/playful_ui.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -12,8 +13,8 @@ Future<void> addPlayer(WidgetTester tester, String name) async {
   await tester.pumpAndSettle();
 }
 
-FilledButton continueButton(WidgetTester tester) => tester.widget<FilledButton>(
-  find.ancestor(of: find.text('CONTINUE'), matching: find.byType(FilledButton)),
+PillButton continueButton(WidgetTester tester) => tester.widget<PillButton>(
+  find.ancestor(of: find.text('CONTINUE'), matching: find.byType(PillButton)),
 );
 
 void main() {
