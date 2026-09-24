@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:undercover/features/imposter/domain/enums/difficulty.dart';
 import 'package:undercover/features/imposter/presentation/providers/providers.dart';
@@ -12,7 +13,7 @@ void main() {
 
   testWidgets('defaults and dynamic imposter maximum', (tester) async {
     final c = await pumpApp(tester, const GameConfigScreen(), prefs: roster(8));
-    expect(find.text('READY TO PLAY?'), findsOneWidget);
+    expect(find.bySemanticsLabel('Ready to play?'), findsOneWidget);
     expect(find.text('Maximum imposters for 8 players: 2'), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
 
@@ -35,9 +36,13 @@ void main() {
     await tester.pumpAndSettle();
     expect(c.read(gameSettingsProvider).difficulty, Difficulty.difficult);
 
-    await tester.ensureVisible(find.text('Show hint to imposter'));
+    await tester.scrollUntilVisible(
+      find.text('Give a hint'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Show hint to imposter'));
+    await tester.tap(find.text('Give a hint'));
     await tester.pumpAndSettle();
     expect(c.read(gameSettingsProvider).showHint, isTrue);
   });

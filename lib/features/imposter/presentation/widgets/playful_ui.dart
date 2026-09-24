@@ -179,31 +179,39 @@ class _PillButtonState extends ConsumerState<PillButton> {
     Color? textShadow,
   }) {
     final primary = widget.primary;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          widget.icon,
-          size: primary ? 30 : 26,
-          color: iconColor,
-          shadows: textShadow == PlayfulColors.lip
-              ? const [Shadow(color: PlayfulColors.lip, offset: Offset(0, 2))]
-              : null,
-        ),
-        SizedBox(width: primary ? 14 : 12),
-        Text(
-          widget.label,
-          style: TextStyle(
-            fontSize: primary ? 22 : 18,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.2,
-            color: textColor,
-            shadows: textShadow == null
-                ? null
-                : [Shadow(color: textShadow, offset: const Offset(0, 2))],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            widget.icon,
+            size: primary ? 30 : 26,
+            color: iconColor,
+            shadows: textShadow == PlayfulColors.lip
+                ? const [Shadow(color: PlayfulColors.lip, offset: Offset(0, 2))]
+                : null,
           ),
-        ),
-      ],
+          SizedBox(width: primary ? 14 : 12),
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                widget.label,
+                style: TextStyle(
+                  fontSize: primary ? 22 : 18,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2,
+                  color: textColor,
+                  shadows: textShadow == null
+                      ? null
+                      : [Shadow(color: textShadow, offset: const Offset(0, 2))],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -430,10 +438,8 @@ class PlayfulBackground extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => CustomPaint(
-    painter: _PlayfulBackgroundPainter(),
-    child: child,
-  );
+  Widget build(BuildContext context) =>
+      CustomPaint(painter: _PlayfulBackgroundPainter(), child: child);
 }
 
 class _PlayfulBackgroundPainter extends CustomPainter {
@@ -451,25 +457,46 @@ class _PlayfulBackgroundPainter extends CustomPainter {
         ).createShader(Offset.zero & size),
     );
 
-    final blob = Paint()..color = const Color(0xFFDCCFF8).withValues(alpha: 0.6);
+    final blob = Paint()
+      ..color = const Color(0xFFDCCFF8).withValues(alpha: 0.6);
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.02, h * 0.1), width: w * 0.9, height: h * 0.2),
+      Rect.fromCenter(
+        center: Offset(w * 0.02, h * 0.1),
+        width: w * 0.9,
+        height: h * 0.2,
+      ),
       blob,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 1.02, h * 0.2), width: w * 0.4, height: h * 0.14),
+      Rect.fromCenter(
+        center: Offset(w * 1.02, h * 0.2),
+        width: w * 0.4,
+        height: h * 0.14,
+      ),
       blob,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(-w * 0.02, h * 0.42), width: w * 0.45, height: h * 0.2),
+      Rect.fromCenter(
+        center: Offset(-w * 0.02, h * 0.42),
+        width: w * 0.45,
+        height: h * 0.2,
+      ),
       blob,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 1.0, h * 0.44), width: w * 0.62, height: h * 0.18),
+      Rect.fromCenter(
+        center: Offset(w * 1.0, h * 0.44),
+        width: w * 0.62,
+        height: h * 0.18,
+      ),
       blob,
     );
     canvas.drawOval(
-      Rect.fromCenter(center: Offset(w * 0.98, h * 0.74), width: w * 0.42, height: h * 0.24),
+      Rect.fromCenter(
+        center: Offset(w * 0.98, h * 0.74),
+        width: w * 0.42,
+        height: h * 0.24,
+      ),
       blob,
     );
 
@@ -480,7 +507,8 @@ class _PlayfulBackgroundPainter extends CustomPainter {
     _question(canvas, Offset(w * 0.85, h * 0.49), h * 0.12, decor);
     _question(canvas, Offset(w * 0.24, h * 0.76), h * 0.1, decor);
 
-    final star = Paint()..color = const Color(0xFFB9A0F3).withValues(alpha: 0.8);
+    final star = Paint()
+      ..color = const Color(0xFFB9A0F3).withValues(alpha: 0.8);
     for (final (x, y, r) in [
       (0.71, 0.09, 8.0),
       (0.83, 0.21, 9.0),
@@ -581,4 +609,124 @@ class _PlayfulBackgroundPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_PlayfulBackgroundPainter old) => false;
+}
+
+/// Masquerade mask glyph (no matching Material icon). Sized and coloured
+/// from the ambient [IconTheme].
+class MaskIcon extends StatelessWidget {
+  const MaskIcon({super.key, this.size, this.color});
+
+  final double? size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = IconTheme.of(context);
+    final s = size ?? theme.size ?? 24;
+    return CustomPaint(
+      size: Size.square(s),
+      painter: _MaskPainter(color ?? theme.color ?? PlayfulColors.accent),
+    );
+  }
+}
+
+class _MaskPainter extends CustomPainter {
+  _MaskPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.scale(size.width / 24);
+    final path = Path()
+      ..fillType = PathFillType.evenOdd
+      ..moveTo(1.5, 9)
+      ..cubicTo(1.5, 6.6, 4, 6, 7, 6.5)
+      ..cubicTo(9, 6.8, 10.5, 7.8, 12, 7.8)
+      ..cubicTo(13.5, 7.8, 15, 6.8, 17, 6.5)
+      ..cubicTo(20, 6, 22.5, 6.6, 22.5, 9)
+      ..cubicTo(22.5, 13.5, 20, 17, 16.5, 17)
+      ..cubicTo(14.5, 17, 13.5, 15, 12, 15)
+      ..cubicTo(10.5, 15, 9.5, 17, 7.5, 17)
+      ..cubicTo(4, 17, 1.5, 13.5, 1.5, 9)
+      ..close()
+      ..addOval(
+        Rect.fromCenter(center: const Offset(7.4, 11), width: 5, height: 3),
+      )
+      ..addOval(
+        Rect.fromCenter(center: const Offset(16.6, 11), width: 5, height: 3),
+      );
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_MaskPainter old) => old.color != color;
+}
+
+/// Small-caps section heading with a leading purple icon.
+class SectionLabel extends StatelessWidget {
+  const SectionLabel({super.key, required this.icon, required this.title});
+
+  final Widget icon;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 8, bottom: 10),
+      child: Row(
+        children: [
+          IconTheme(
+            data: const IconThemeData(color: PlayfulColors.accent, size: 28),
+            child: icon,
+          ),
+          const SizedBox(width: 10),
+          Semantics(
+            header: true,
+            child: Text(
+              title.toUpperCase(),
+              style: const TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.4,
+                color: PlayfulColors.accent,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Frosted white rounded panel used for grouped settings.
+class FrostedCard extends StatelessWidget {
+  const FrostedCard({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(14),
+  });
+
+  final Widget child;
+  final EdgeInsetsGeometry padding;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white),
+        boxShadow: [
+          BoxShadow(
+            color: PlayfulColors.accent.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
 }
