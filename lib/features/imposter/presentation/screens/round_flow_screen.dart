@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_tokens.dart';
@@ -73,45 +74,74 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
     final phase = ref.watch(gamePhaseProvider);
     final (position, total) = ref.watch(revealProgressProvider);
     final animate = animationsOn(context, ref);
+    final onArt = phase == GamePhase.roundReady;
+    final dark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _handleBack();
       },
-      child: Scaffold(
-        body: GameBackground(
-          child: SafeArea(
-            child: Column(
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: onArt || dark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark,
+        child: Scaffold(
+          body: GameBackground(
+            child: Stack(
+              fit: StackFit.expand,
               children: [
-                _TopBar(
-                  phase: phase,
-                  position: position,
-                  total: total,
-                  onClose: _handleBack,
-                ),
-                Expanded(
-                  child: AnimatedSwitcher(
+                // Kept in the tree (invisible) for the whole round so the
+                // artwork is already decoded when the round-ready view appears.
+                IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: onArt ? 1 : 0,
                     duration: animate ? AppDurations.medium : Duration.zero,
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final incoming = child.key == _viewKey(phase, position);
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: Tween(
-                            begin: Offset(incoming ? 0.35 : -0.35, 0),
-                            end: Offset.zero,
-                          ).animate(animation),
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: KeyedSubtree(
-                      key: _viewKey(phase, position),
-                      child: _buildPhase(phase, position, total, animate),
+                    child: Image.asset(
+                      RoundReadyView.backgroundAsset,
+                      fit: BoxFit.cover,
+                      excludeFromSemantics: true,
                     ),
+                  ),
+                ),
+                SafeArea(
+                  child: Column(
+                    children: [
+                      _TopBar(
+                        phase: phase,
+                        position: position,
+                        total: total,
+                        onArt: onArt,
+                        onClose: _handleBack,
+                      ),
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: animate
+                              ? AppDurations.medium
+                              : Duration.zero,
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          transitionBuilder: (child, animation) {
+                            final incoming =
+                                child.key == _viewKey(phase, position);
+                            return FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween(
+                                  begin: Offset(incoming ? 0.35 : -0.35, 0),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            );
+                          },
+                          child: KeyedSubtree(
+                            key: _viewKey(phase, position),
+                            child: _buildPhase(phase, position, total, animate),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -224,12 +254,16 @@ class _TopBar extends StatelessWidget {
     required this.phase,
     required this.position,
     required this.total,
+    required this.onArt,
     required this.onClose,
   });
 
   final GamePhase phase;
   final int position;
   final int total;
+
+  /// Drawn over the round-ready artwork: use a frosted round close button.
+  final bool onArt;
   final VoidCallback onClose;
 
   @override
@@ -246,6 +280,12 @@ class _TopBar extends StatelessWidget {
           IconButton(
             tooltip: 'Leave round',
             icon: const Icon(Icons.close_rounded),
+            style: onArt
+                ? IconButton.styleFrom(
+                    backgroundColor: Colors.black.withValues(alpha: 0.28),
+                    foregroundColor: Colors.white,
+                  )
+                : null,
             onPressed: onClose,
           ),
           Expanded(

@@ -64,6 +64,7 @@ flutter:
   assets:
     - assets/data/imposter_words.json
     - assets/images/home_background.png
+    - assets/images/round_ready_background.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

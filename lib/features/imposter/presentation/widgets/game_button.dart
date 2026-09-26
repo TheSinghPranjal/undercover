@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/app_colors.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../providers/providers.dart';
 
-enum GameButtonVariant { primary, secondary, ghost }
+enum GameButtonVariant {
+  primary,
+  secondary,
+  ghost,
+
+  /// Glowing violet gradient, for the one big call to action over artwork.
+  hero,
+}
 
 /// Big, chunky, squishy button used for every main action.
 class GameButton extends ConsumerStatefulWidget {
@@ -88,6 +96,36 @@ class _GameButtonState extends ConsumerState<GameButton> {
           side: BorderSide(color: scheme.primary, width: 2),
         ),
         child: label,
+      ),
+      GameButtonVariant.hero => DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: AppRadius.card,
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF8F63FF), AppColors.violet, Color(0xFF6A3DF0)],
+          ),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.35),
+            width: 1.5,
+          ),
+          boxShadow: enabled ? AppShadows.glow(AppColors.violet) : null,
+        ),
+        child: FilledButton(
+          onPressed: onTap,
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(64, 62),
+            shape: const RoundedRectangleBorder(borderRadius: AppRadius.card),
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            textStyle: text.labelLarge?.copyWith(
+              fontSize: 18,
+              letterSpacing: 2,
+            ),
+          ),
+          child: label,
+        ),
       ),
       GameButtonVariant.ghost => TextButton(
         onPressed: onTap,
