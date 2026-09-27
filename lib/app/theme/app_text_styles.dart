@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 /// Chunky, expressive type scale for a party game.
 abstract final class AppTextStyles {
+  /// Bundled in assets/fonts (SIL OFL, registered in main.dart).
+  static const fontFamily = 'Nunito';
+
   static TextTheme textTheme(Color onBackground) {
     TextStyle s(
       double size,
@@ -9,6 +12,7 @@ abstract final class AppTextStyles {
       double spacing = 0,
       double? height,
     }) => TextStyle(
+      fontFamily: fontFamily,
       fontSize: size,
       fontWeight: weight,
       letterSpacing: spacing,

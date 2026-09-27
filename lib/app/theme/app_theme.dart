@@ -50,6 +50,7 @@ abstract final class AppTheme {
     final text = AppTextStyles.textTheme(scheme.onSurface);
     return ThemeData(
       useMaterial3: true,
+      fontFamily: AppTextStyles.fontFamily,
       colorScheme: scheme,
       scaffoldBackgroundColor: game.background.first,
       textTheme: text,

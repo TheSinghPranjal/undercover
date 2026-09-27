@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/app_text_styles.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../providers/providers.dart';
 
@@ -561,6 +562,7 @@ class _PlayfulBackgroundPainter extends CustomPainter {
       text: TextSpan(
         text: '?',
         style: TextStyle(
+          fontFamily: AppTextStyles.fontFamily,
           fontSize: size,
           fontWeight: FontWeight.w900,
           color: color,

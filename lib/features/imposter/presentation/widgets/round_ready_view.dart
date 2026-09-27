@@ -24,7 +24,7 @@ class RoundReadyView extends StatelessWidget {
     required this.onChangeSettings,
   });
 
-  static const backgroundAsset = 'assets/images/round_ready_background.png';
+  static const backgroundAsset = 'assets/images/round_ready_background.webp';
 
   final Player startingPlayer;
   final bool animationsEnabled;

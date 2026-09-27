@@ -15,7 +15,7 @@ class HomeBackground extends StatefulWidget {
     required this.scale,
   });
 
-  static const asset = 'assets/images/home_background.png';
+  static const asset = 'assets/images/home_background.webp';
   static const imageSize = Size(941, 1672);
 
   /// Source row where the header artwork starts / ends (logo shadow included).
