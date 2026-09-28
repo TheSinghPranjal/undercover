@@ -22,11 +22,8 @@ void main() {
     await pumpApp(tester, const HomeScreen());
     await tester.tap(find.text('HOW TO PLAY'));
     await tester.pumpAndSettle();
+    // Every step is on a single screen.
     expect(find.text('1. ADD PLAYERS'), findsOneWidget);
-    for (var i = 0; i < 4; i++) {
-      await tester.tap(find.text('NEXT'));
-      await tester.pumpAndSettle();
-    }
     expect(find.text('5. NEW ROUND'), findsOneWidget);
     await tester.tap(find.text('GOT IT!'));
     await tester.pumpAndSettle();
