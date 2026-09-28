@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../app/theme/app_theme.dart';
 import '../../../../app/theme/app_tokens.dart';
 import '../../../../core/widgets/game_background.dart';
 import '../../domain/enums/game_phase.dart';
@@ -9,6 +10,7 @@ import '../providers/providers.dart';
 import '../providers/ui_providers.dart';
 import '../widgets/exit_round_dialog.dart';
 import '../widgets/pass_phone_view.dart';
+import '../widgets/playful_ui.dart';
 import '../widgets/reveal_view.dart';
 import '../widgets/round_ready_view.dart';
 
@@ -32,6 +34,13 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // The first hand-off screen appears immediately; avoid the art popping in.
+    precacheImage(const AssetImage(PassPhoneView.suspectsAsset), context);
   }
 
   @override
@@ -75,7 +84,11 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
     final (position, total) = ref.watch(revealProgressProvider);
     final animate = animationsOn(context, ref);
     final onArt = phase == GamePhase.roundReady;
+    // Hand-off screens use the light, illustrated lavender look.
+    final onLavender =
+        phase == GamePhase.passPhone || phase == GamePhase.privacyHidden;
     final dark = Theme.of(context).brightness == Brightness.dark;
+    final fade = animate ? AppDurations.medium : Duration.zero;
 
     return PopScope(
       canPop: false,
@@ -83,7 +96,7 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
         if (!didPop) _handleBack();
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: onArt || dark
+        value: onArt || (dark && !onLavender)
             ? SystemUiOverlayStyle.light
             : SystemUiOverlayStyle.dark,
         child: Scaffold(
@@ -91,12 +104,19 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
             child: Stack(
               fit: StackFit.expand,
               children: [
+                IgnorePointer(
+                  child: AnimatedOpacity(
+                    opacity: onLavender ? 1 : 0,
+                    duration: fade,
+                    child: const PlayfulBackground(child: SizedBox.expand()),
+                  ),
+                ),
                 // Kept in the tree (invisible) for the whole round so the
                 // artwork is already decoded when the round-ready view appears.
                 IgnorePointer(
                   child: AnimatedOpacity(
                     opacity: onArt ? 1 : 0,
-                    duration: animate ? AppDurations.medium : Duration.zero,
+                    duration: fade,
                     child: Image.asset(
                       RoundReadyView.backgroundAsset,
                       fit: BoxFit.cover,
@@ -107,12 +127,15 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
                 SafeArea(
                   child: Column(
                     children: [
-                      _TopBar(
-                        phase: phase,
-                        position: position,
-                        total: total,
-                        onArt: onArt,
-                        onClose: _handleBack,
+                      Theme(
+                        data: onLavender ? AppTheme.light : Theme.of(context),
+                        child: _TopBar(
+                          phase: phase,
+                          position: position,
+                          total: total,
+                          onArt: onArt,
+                          onClose: _handleBack,
+                        ),
                       ),
                       Expanded(
                         child: AnimatedSwitcher(

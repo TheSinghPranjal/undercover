@@ -66,6 +66,7 @@ flutter:
     - assets/data/imposter_words.json
     - assets/images/home_background.webp
     - assets/images/round_ready_background.webp
+    - assets/images/pass_phone_suspects.webp
     - assets/fonts/OFL.txt
 
   fonts:
