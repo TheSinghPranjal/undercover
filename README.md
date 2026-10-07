@@ -53,6 +53,49 @@ playerSetup → configuration → generatingRound → passPhone → readyToRevea
 
 `privacyHidden` can come in from any reveal state when the app leaves the foreground.
 
+## Ads
+
+Banners sit on the home menu and on the between-rounds "everyone's ready" screen. An interstitial can appear when the group taps **AGAIN**, every 4th round and not again for 90 seconds. No ad is shown during the pass-the-phone role and word reveal. There is no rewarded ad: the game has no extra life, hint unlock, or other reward an ad could fairly grant.
+
+On launch the app requests UMP consent before initializing Mobile Ads. If a privacy-options entry point is required, Settings shows **Ad privacy choices**.
+
+## Configuring AdMob for release
+
+Debug and profile builds always request Google's sample ad units, so they show **Test Ad**. Release builds (`flutter build appbundle`, `flutter build ipa`, `flutter run --release`) request the production IDs in [`config/admob.json`](config/admob.json). That file is the only place to paste them. The publisher account is `pub-8661918790125012`.
+
+Create the apps and ad units in AdMob, then replace each `TODO_…` value:
+
+| JSON key | What to paste | Format | Where it is used |
+| --- | --- | --- | --- |
+| `ADMOB_ANDROID_APP_ID` | Android app `com.the_lazy_bear_club.undercover` → App settings → App ID | `ca-app-pub-8661918790125012~##########` | Android manifest, release builds |
+| `ADMOB_ANDROID_BANNER_ID` | Android banner ad unit | `ca-app-pub-8661918790125012/##########` | Home menu and the between-rounds screen |
+| `ADMOB_ANDROID_INTERSTITIAL_ID` | Android interstitial ad unit | `ca-app-pub-8661918790125012/##########` | Between rounds (every 4th **AGAIN**, 90 seconds apart) |
+| `ADMOB_IOS_APP_ID` | iOS app `com.thelazybearclub.undercover` → App settings → App ID | `ca-app-pub-8661918790125012~##########` | `Info.plist` via `ios/Flutter/AdMob.xcconfig` |
+| `ADMOB_IOS_BANNER_ID` | iOS banner ad unit | `ca-app-pub-8661918790125012/##########` | Home menu and the between-rounds screen |
+| `ADMOB_IOS_INTERSTITIAL_ID` | iOS interstitial ad unit | `ca-app-pub-8661918790125012/##########` | Between rounds (every 4th **AGAIN**, 90 seconds apart) |
+
+Where those values are applied:
+
+- **Dart ad units** read `config/admob.json` (it is a bundled asset). You can override any key at compile time with `--dart-define` or `--dart-define-from-file=config/admob.json`. The keys are the same names as in the JSON file.
+- **Android App ID** is injected into `AndroidManifest.xml` as `${admobAppId}`. Gradle reads `ADMOB_ANDROID_APP_ID` from the JSON for release, and Google's sample App ID for debug and profile.
+- **iOS App ID** is `$(GAD_APPLICATION_IDENTIFIER)` in `ios/Runner/Info.plist`. Debug and profile xcconfigs pin the sample App ID. Release reads `ios/Flutter/AdMob.xcconfig`, which is generated from the JSON:
+
+```bash
+dart run tool/sync_admob.dart
+```
+
+Run that after every edit to the iOS App ID. A release iOS build fails if the xcconfig is stale.
+
+Release builds also fail, instead of silently shipping test ads, when an ID is empty, still a `TODO_…` placeholder, or still one of Google's sample IDs (`ca-app-pub-3940256099942544…`):
+
+- `flutter build appbundle` / `flutter build apk --release` runs `dart run tool/validate_admob.dart --android` before packaging.
+- Xcode Release runs `tool/validate_admob_ios.sh`.
+- The release app itself throws on startup if the current platform's IDs are still invalid.
+
+Android can ship before the iOS IDs exist. The Android check only looks at the three Android keys, and the iOS check only looks at the three iOS keys.
+
+Until the `TODO_…` placeholders are replaced, a release build is supposed to fail.
+
 ## Privacy
 
 - Widgets never get the whole round. `currentAssignmentProvider` exposes only the current player's card, and only while it's face-up.

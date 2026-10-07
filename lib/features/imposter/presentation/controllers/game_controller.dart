@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/ads/banner_gate.dart';
+import '../../../../core/ads/interstitial_policy.dart';
 import '../../../../core/utils/id_generator.dart';
 import '../../domain/entities/player.dart';
 import '../../domain/enums/game_phase.dart';
@@ -12,6 +14,8 @@ import 'game_state.dart';
 /// never mutate game state themselves.
 class GameController extends Notifier<GameState> {
   late final IdGenerator _ids = IdGenerator(ref.read(randomProvider));
+  int _roundsCompleted = 0;
+  DateTime? _lastInterstitialAt;
 
   @override
   GameState build() {
@@ -219,9 +223,38 @@ class GameController extends Notifier<GameState> {
     if (state.phase == GamePhase.allPlayersRevealed) passToNextPlayer();
   }
 
+  /// Another round, after discussion. May show an interstitial first.
+  ///
+  /// The ad is only considered while the phase is still [GamePhase.roundReady],
+  /// which is after every secret has been hidden. It is never shown from the
+  /// pass-the-phone reveal.
   Future<void> startNextRound() async {
     if (state.phase != GamePhase.roundReady) return;
-    await startRound();
+    ref.read(anchoredBannerSuppressProvider.notifier).setSuppressed(true);
+    _roundsCompleted += 1;
+    final showAd = InterstitialPolicy.shouldShow(
+      fromNextRound: true,
+      skipNext: false,
+      roundsPlayed: _roundsCompleted,
+      lastShownAt: _lastInterstitialAt,
+      now: DateTime.now(),
+    );
+    if (showAd) {
+      final shown = await ref.read(adsServiceProvider).showInterstitial();
+      if (!ref.mounted) return;
+      if (shown) _lastInterstitialAt = DateTime.now();
+      if (state.phase != GamePhase.roundReady) {
+        ref.read(anchoredBannerSuppressProvider.notifier).setSuppressed(false);
+        return;
+      }
+    }
+    try {
+      await startRound();
+    } finally {
+      if (ref.mounted) {
+        ref.read(anchoredBannerSuppressProvider.notifier).setSuppressed(false);
+      }
+    }
   }
 
   /// Discards the current round and returns to configuration.

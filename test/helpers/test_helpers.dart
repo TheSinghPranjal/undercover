@@ -28,6 +28,7 @@ List<Player> makePlayers(int n) => [
 Future<List<Override>> testOverrides({
   Map<String, Object> prefs = const {},
   int seed = 42,
+  List<Override> extra = const [],
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   final sp = await SharedPreferences.getInstance();
@@ -38,14 +39,16 @@ Future<List<Override>> testOverrides({
       (ref) async =>
           InMemoryWordRepository(realWordPack(), random: Random(seed)),
     ),
+    ...extra,
   ];
 }
 
 Future<ProviderContainer> makeContainer({
   Map<String, Object> prefs = const {},
   int seed = 42,
+  List<Override> extra = const [],
 }) async => ProviderContainer.test(
-  overrides: await testOverrides(prefs: prefs, seed: seed),
+  overrides: await testOverrides(prefs: prefs, seed: seed, extra: extra),
 );
 
 /// Pumps the app starting at [home] with animations disabled so
@@ -55,6 +58,7 @@ Future<ProviderContainer> pumpApp(
   Widget home, {
   Map<String, Object> prefs = const {},
   int seed = 42,
+  List<Override> extra = const [],
 }) async {
   tester.platformDispatcher.accessibilityFeaturesTestValue =
       const FakeAccessibilityFeatures(disableAnimations: true);
@@ -63,7 +67,7 @@ Future<ProviderContainer> pumpApp(
   tester.view.devicePixelRatio = 2.75;
   addTearDown(tester.view.reset);
 
-  final overrides = await testOverrides(prefs: prefs, seed: seed);
+  final overrides = await testOverrides(prefs: prefs, seed: seed, extra: extra);
   await tester.pumpWidget(
     ProviderScope(
       overrides: overrides,

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/theme/app_theme.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/ads/banner_gate.dart';
 import '../../../../core/widgets/game_background.dart';
 import '../../domain/enums/game_phase.dart';
 import '../providers/providers.dart';
@@ -104,6 +105,15 @@ class _RoundFlowScreenState extends ConsumerState<RoundFlowScreen>
             child: Stack(
               fit: StackFit.expand,
               children: [
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  width: 0,
+                  height: 0,
+                  child: SyncAnchoredBanner(
+                    allowed: phase == GamePhase.roundReady,
+                  ),
+                ),
                 IgnorePointer(
                   child: AnimatedOpacity(
                     opacity: onLavender ? 1 : 0,
