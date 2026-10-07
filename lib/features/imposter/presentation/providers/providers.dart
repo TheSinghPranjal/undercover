@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/ads/ad_config.dart';
+import '../../../../core/ads/ads_service.dart';
 import '../../../../core/services/haptics_service.dart';
 import '../../../../core/services/privacy_service.dart';
 import '../../../../core/services/sound_service.dart';
@@ -61,6 +63,14 @@ final soundProvider = Provider<SoundService>(
 final privacyServiceProvider = Provider<PrivacyService>(
   (ref) => const PrivacyService(),
 );
+
+/// Overridden in `main()` with the instance that already ran UMP consent.
+final adsServiceProvider = Provider<AdsService>((ref) {
+  if (AdConfig.adsSupported) {
+    return MobileAdsService(isTestMode: AdConfig.isTestMode);
+  }
+  return FakeAdsService();
+});
 
 // ------------------------------------------------------------ word pack
 

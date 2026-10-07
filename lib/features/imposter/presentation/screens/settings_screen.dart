@@ -221,6 +221,7 @@ class SettingsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
+              const _AdPrivacySection(),
               gap,
               Text(
                 'Find the Imposter · 600 words · works offline',
@@ -231,6 +232,49 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shown only when UMP requires a privacy-options entry point.
+class _AdPrivacySection extends ConsumerStatefulWidget {
+  const _AdPrivacySection();
+
+  @override
+  ConsumerState<_AdPrivacySection> createState() => _AdPrivacySectionState();
+}
+
+class _AdPrivacySectionState extends ConsumerState<_AdPrivacySection> {
+  late final Future<bool> _required;
+
+  @override
+  void initState() {
+    super.initState();
+    _required = ref.read(adsServiceProvider).privacyOptionsRequired;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _required,
+      builder: (context, snapshot) {
+        if (snapshot.data != true) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(top: AppSpacing.lg),
+          child: SectionCard(
+            title: 'Ads',
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: ListTile(
+              leading: const Icon(Icons.privacy_tip_outlined),
+              title: const Text('Ad privacy choices'),
+              subtitle: const Text('Manage how ads are personalized'),
+              onTap: () {
+                ref.read(adsServiceProvider).showPrivacyOptions();
+              },
+            ),
+          ),
+        );
+      },
     );
   }
 }

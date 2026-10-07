@@ -65,6 +65,7 @@ Future<void> _captureSet(WidgetTester tester, _ShotSet shotSet) async {
   tester.view.devicePixelRatio = shotSet.dpr;
   addTearDown(tester.view.reset);
 
+  // ignore: invalid_use_of_visible_for_testing_member
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   await tester.pumpWidget(

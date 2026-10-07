@@ -34,13 +34,17 @@ class SectionCard extends StatelessWidget {
           ),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: scheme.surface,
             borderRadius: AppRadius.card,
             boxShadow: AppShadows.soft(scheme.primary),
           ),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(AppSpacing.md),
-            child: child,
+          child: Material(
+            color: scheme.surface,
+            borderRadius: AppRadius.card,
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: padding ?? const EdgeInsets.all(AppSpacing.md),
+              child: child,
+            ),
           ),
         ),
       ],

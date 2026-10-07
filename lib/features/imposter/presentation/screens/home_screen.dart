@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/router.dart';
 import '../../../../app/theme/app_tokens.dart';
+import '../../../../core/ads/banner_gate.dart';
 import '../providers/providers.dart';
 import '../widgets/home_background.dart';
 import '../widgets/playful_ui.dart';
@@ -23,65 +24,78 @@ class HomeScreen extends ConsumerWidget {
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
         backgroundColor: PlayfulColors.page,
-        body: LayoutBuilder(
-          builder: (context, constraints) {
-            final w = constraints.maxWidth;
-            final h = constraints.maxHeight;
-            const src = HomeBackground.imageSize;
-            const headerRows =
-                HomeBackground.headerEndRow - HomeBackground.headerStartRow;
-            // Slight zoom so the characters fill the width like the mock,
-            // but never so tall the header eats more than half the screen.
-            final scale = max(
-              w / src.width,
-              min(w * 1.06 / src.width, h * 0.5 / headerRows),
-            );
-            final headerTop = insets.top;
-            final headerBottom = headerTop + headerRows * scale;
+        body: Stack(
+          children: [
+            const Positioned(
+              left: 0,
+              top: 0,
+              width: 0,
+              height: 0,
+              child: SyncAnchoredBanner(allowed: true),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final w = constraints.maxWidth;
+                final h = constraints.maxHeight;
+                const src = HomeBackground.imageSize;
+                const headerRows =
+                    HomeBackground.headerEndRow - HomeBackground.headerStartRow;
+                // Slight zoom so the characters fill the width like the mock,
+                // but never so tall the header eats more than half the screen.
+                final scale = max(
+                  w / src.width,
+                  min(w * 1.06 / src.width, h * 0.5 / headerRows),
+                );
+                final headerTop = insets.top;
+                final headerBottom = headerTop + headerRows * scale;
 
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: h),
-                child: IntrinsicHeight(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: HomeBackground(
-                          headerTop: headerTop,
-                          scale: scale,
-                        ),
-                      ),
-                      Positioned(
-                        top: headerTop,
-                        left: 0,
-                        right: 0,
-                        height: headerBottom - headerTop,
-                        child: Semantics(
-                          header: true,
-                          label: 'Find the Imposter',
-                          child: const SizedBox.expand(),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          28,
-                          headerBottom - 4,
-                          28,
-                          insets.bottom + AppSpacing.md,
-                        ),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 480),
-                            child: _HomeContent(ref: ref),
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(minHeight: h),
+                    child: IntrinsicHeight(
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: HomeBackground(
+                              headerTop: headerTop,
+                              scale: scale,
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            top: headerTop,
+                            left: 0,
+                            right: 0,
+                            height: headerBottom - headerTop,
+                            child: Semantics(
+                              header: true,
+                              label: 'Find the Imposter',
+                              child: const SizedBox.expand(),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(
+                              28,
+                              headerBottom - 4,
+                              28,
+                              insets.bottom + AppSpacing.md,
+                            ),
+                            child: Center(
+                              child: ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 480,
+                                ),
+                                child: _HomeContent(ref: ref),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
