@@ -82,14 +82,17 @@ void main() {
     }
   });
 
-  test('placeholder config fails the release guard on both platforms', () {
+  test('Android release IDs pass and iOS placeholders still fail', () {
     final decoded =
         jsonDecode(File('config/admob.json').readAsStringSync()) as Map;
     final ids = decoded.map(
       (key, value) => MapEntry(key.toString(), value.toString()),
     );
-    expect(AdIds.problemsFor(ids, ios: false), isNotEmpty);
+    expect(AdIds.problemsFor(ids, ios: false), isEmpty);
     expect(AdIds.problemsFor(ids, ios: true), isNotEmpty);
+    for (final key in AdIds.iosKeys) {
+      expect(ids[key]!.trim().startsWith('TODO_'), isTrue, reason: key);
+    }
   });
 
   test('iOS xcconfig matches the JSON app ID', () {

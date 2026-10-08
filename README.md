@@ -92,9 +92,7 @@ Release builds also fail, instead of silently shipping test ads, when an ID is e
 - Xcode Release runs `tool/validate_admob_ios.sh`.
 - The release app itself throws on startup if the current platform's IDs are still invalid.
 
-Android can ship before the iOS IDs exist. The Android check only looks at the three Android keys, and the iOS check only looks at the three iOS keys.
-
-Until the `TODO_…` placeholders are replaced, a release build is supposed to fail.
+Android can ship before the iOS IDs exist. The Android check only looks at the three Android keys, and the iOS check only looks at the three iOS keys. An Android release build passes that check once the Android keys are real, even while the iOS keys are still `TODO_…`. An iOS release build keeps failing until those iOS keys are replaced.
 
 ## Privacy
 
